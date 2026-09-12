@@ -3,6 +3,7 @@ from pathlib import Path
 from PIL import Image
 
 from localmuse.caption_cleanup import CaptionCleaner
+from localmuse.dataset_analysis import DatasetAnalyzer
 from localmuse.image_prompt import ImagePromptGenerator
 
 
@@ -97,3 +98,15 @@ def test_caption_cleaner_removes_identity_claims_and_keeps_visual_details():
     cleaned = CaptionCleaner().clean(caption, "nag_person")
 
     assert cleaned == "nag_person, a woman wearing a jacket."
+
+
+def test_dataset_analyzer_reports_missing_captions_and_small_images(tmp_path):
+    Image.new("RGB", (400, 700), color=(220, 220, 220)).save(tmp_path / "small.png")
+    Image.new("RGB", (800, 800), color=(220, 220, 220)).save(tmp_path / "ready.png")
+    (tmp_path / "ready.txt").write_text("nag_person, a portrait.", encoding="utf-8")
+
+    report = DatasetAnalyzer().analyze(tmp_path, "nag_person")
+
+    assert report["image_count"] == 2
+    assert report["read_error_count"] == 0
+    assert report["warning_counts"] == {"small_dimension": 1, "missing_caption": 1}

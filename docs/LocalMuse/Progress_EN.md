@@ -22,6 +22,8 @@ Keep it synchronized with `Progress_RU.md` after every meaningful change.
 - Generated captions for the 30-image `data/nag_person` pilot dataset.
 - Added caption cleanup for speculative and identity-related model output.
 - Cleaned all 30 pilot captions and kept raw copies outside Git.
+- Completed automated and visual review of the pilot dataset; findings are in
+  `Dataset_Review_nag_person.md`.
 - Added tests for portrait images, landscape images, and unsupported extensions.
 - Added tests for same-name TXT files, complex filenames, and directory processing.
 - Added the project plan in `docs/LocalMuse/LocalMuse-AI_Project_Plan.md`.
@@ -58,13 +60,15 @@ training, evaluation, and generation as separate components.
 - Florence-2 was verified on the RTX 3080 and generated 30 captions.
 - Cleaned captions contain the trigger exactly once, with no empty files or known
   speculative-output patterns.
+- All 30 images are readable with no exact duplicates; 29 have one dimension below
+  512 px and need to be considered in training settings.
 - The current test coverage covers prompt generation and sidecar TXT creation.
 
 ## Stopping Point
 
-The pilot dataset now has trigger-prefixed, automatically cleaned captions. The
-next feature is visual/manual review and broader dataset quality analysis before
-LoRA training.
+The pilot dataset now has trigger-prefixed, automatically cleaned captions and a
+documented review. The next feature is a reproducible LoRA training configuration
+and a short baseline training run.
 
 ## Session Notes
 
