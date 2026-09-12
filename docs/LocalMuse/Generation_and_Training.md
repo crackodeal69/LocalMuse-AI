@@ -68,3 +68,22 @@ For a fair comparison, vary only the LoRA checkpoint or weight. Compare identity
 similarity, face quality, prompt adherence, and artifacts. The sample images made
 during training are useful clues, but the Forge test at a fixed seed is the final
 comparison.
+
+## Console Generation
+
+For automated comparison, run:
+
+```text
+scripts\start_forge_api.bat
+```
+
+After Forge is ready, open another terminal in the project root and run:
+
+```powershell
+python scripts\generate_lora_comparison.py
+```
+
+This generates epochs 3, 5, 7, 8, 9, and 10 with the same seed and settings. The
+results are written to `outputs\generation_comparison\epoch_XX`. The script uses
+only the Python standard library and copies each selected LoRA into Forge
+automatically.
