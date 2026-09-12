@@ -1,5 +1,6 @@
 pretrained_model_name_or_path = "E:/AI/LocalMuse-AI/models/base/realvisxlV50_v50Bakedvae.safetensors"
-train_data_dir = "E:/AI/LocalMuse-AI/data/nag_person"
+sdxl = true
+train_data_dir = "E:/AI/LocalMuse-AI/data/lora_dataset_v01"
 output_dir = "E:/AI/LocalMuse-AI/models/lora"
 logging_dir = "E:/AI/LocalMuse-AI/outputs/logs/nag_person_dataset_v01"
 output_name = "nag_person_dataset_v01"

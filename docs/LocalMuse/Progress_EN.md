@@ -56,19 +56,18 @@ training, evaluation, and generation as separate components.
   pytest
   ```
 
-- Latest run: `python -m pytest -q` passed with 6 tests.
+- Latest run: `python -m pytest -q` passed with 9 tests.
 - Florence-2 was verified on the RTX 3080 and generated 30 captions.
 - Cleaned captions contain the trigger exactly once, with no empty files or known
   speculative-output patterns.
 - All 30 images are readable with no exact duplicates; 29 have one dimension below
   512 px and need to be considered in training settings.
-- The current test coverage covers prompt generation and sidecar TXT creation.
+- The current test coverage covers prompt generation, caption cleanup, and dataset QA.
 
 ## Stopping Point
 
-The pilot dataset now has trigger-prefixed, automatically cleaned captions and a
-documented review. The next feature is a reproducible LoRA training configuration
-and a short baseline training run.
+The first SDXL LoRA baseline completed for the pilot dataset. The next feature is
+fixed-prompt checkpoint comparison and identity evaluation.
 
 ## Session Notes
 
