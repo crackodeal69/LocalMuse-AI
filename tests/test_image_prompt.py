@@ -2,6 +2,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from localmuse.caption_cleanup import CaptionCleaner
 from localmuse.image_prompt import ImagePromptGenerator
 
 
@@ -74,3 +75,25 @@ def test_write_prompts_for_directory_processes_supported_images_only(tmp_path):
 
     assert prompt_paths == [tmp_path / "image1.txt", tmp_path / "photo1.txt"]
     assert (tmp_path / "notes.txt").read_text(encoding="utf-8") == "ignore"
+
+
+def test_caption_cleaner_removes_speculative_sentences():
+    caption = (
+        "nag_person, The image shows a woman wearing a brown top. "
+        "She is likely discussing the best hair color for her face."
+    )
+
+    cleaned = CaptionCleaner().clean(caption, "nag_person")
+
+    assert cleaned == "nag_person, a woman wearing a brown top."
+
+
+def test_caption_cleaner_removes_identity_claims_and_keeps_visual_details():
+    caption = (
+        "nag_person, The image shows a woman wearing a jacket. "
+        "She is identified as Anastasia, known for her role in a movie."
+    )
+
+    cleaned = CaptionCleaner().clean(caption, "nag_person")
+
+    assert cleaned == "nag_person, a woman wearing a jacket."

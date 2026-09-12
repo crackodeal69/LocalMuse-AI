@@ -85,6 +85,17 @@ $env:HF_HOME = 'E:\AI\LocalMuse-AI\models\huggingface'
 The CLI defaults to the project model directory, so `--cache-dir` and `HF_HOME`
 can be omitted after confirming the runtime's Hugging Face configuration.
 
+Clean generated captions without loading the model again:
+
+```powershell
+python -m tools.clean_captions `
+  'E:\AI\LocalMuse-AI\data\nag_person' `
+  --trigger nag_person
+```
+
+The cleanup removes speculative, identity-related, and subjective text while
+keeping visible details such as clothing, pose, and background.
+
 ## Rules for Future Agents
 
 - Do not download duplicate copies into `E:\ai_work`.
