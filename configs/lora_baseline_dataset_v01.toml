@@ -1,0 +1,47 @@
+pretrained_model_name_or_path = "E:/AI/LocalMuse-AI/models/base/realvisxlV50_v50Bakedvae.safetensors"
+train_data_dir = "E:/AI/LocalMuse-AI/data/nag_person"
+output_dir = "E:/AI/LocalMuse-AI/models/lora"
+logging_dir = "E:/AI/LocalMuse-AI/outputs/logs/nag_person_dataset_v01"
+output_name = "nag_person_dataset_v01"
+
+resolution = "1024,1024"
+enable_bucket = true
+bucket_no_upscale = true
+bucket_reso_steps = 64
+min_bucket_reso = 256
+max_bucket_reso = 2048
+
+train_batch_size = 1
+max_train_epochs = 10
+max_train_steps = 0
+gradient_accumulation_steps = 1
+gradient_checkpointing = true
+max_data_loader_n_workers = 0
+
+network_module = "networks.lora"
+network_dim = 32
+network_alpha = 16
+learning_rate = 0.0001
+unet_lr = 0.0001
+text_encoder_lr = [5e-6, 5e-6]
+lr_scheduler = "cosine"
+lr_scheduler_num_cycles = 1
+lr_warmup_steps = 0.1
+
+optimizer_type = "AdamW8bit"
+mixed_precision = "fp16"
+save_precision = "fp16"
+save_model_as = "safetensors"
+clip_skip = 1
+cache_latents = true
+xformers = true
+
+caption_extension = ".txt"
+max_token_length = 75
+shuffle_caption = false
+keep_tokens = 1
+
+save_every_n_epochs = 1
+sample_every_n_epochs = 1
+sample_prompts = "E:/AI/LocalMuse-AI/configs/sample_prompts.txt"
+sample_sampler = "euler_a"

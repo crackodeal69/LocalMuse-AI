@@ -1,0 +1,4 @@
+nag_person, portrait photo, looking at the camera, soft natural light, neutral background
+nag_person, candid outdoor portrait, wearing a dark jacket, trees in the background, natural daylight
+nag_person, seated indoors, wearing a white shirt, warm window light, realistic photography
+nag_person, full body photo, wearing an elegant dress, simple indoor background, natural pose

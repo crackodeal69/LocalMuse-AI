@@ -59,6 +59,21 @@ E:\ai_work\models\Lora
 Move or copy them only after confirming which base model and training run they
 belong to.
 
+### LocalMuse baseline checkpoint
+
+The verified RealVisXL checkpoint used by the previous `sid_person` run is copied
+to the LocalMuse model area:
+
+```text
+E:\AI\LocalMuse-AI\models\base\realvisxlV50_v50Bakedvae.safetensors
+```
+
+The first LocalMuse training configuration is:
+
+```text
+E:\AI\LocalMuse-AI\configs\lora_baseline_dataset_v01.toml
+```
+
 ## Dataset
 
 Current pilot dataset:
