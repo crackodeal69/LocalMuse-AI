@@ -4,7 +4,7 @@ from PIL import Image
 
 from localmuse.caption_cleanup import CaptionCleaner
 from localmuse.dataset_analysis import DatasetAnalyzer
-from localmuse.dataset_workflow import prepare_training_dataset, scan_dataset
+from localmuse.dataset_workflow import TRAINING_PROFILES, prepare_training_dataset, scan_dataset, write_training_config
 from localmuse.image_prompt import ImagePromptGenerator
 from localmuse.presets import PresetStore
 
@@ -144,3 +144,14 @@ def test_prepare_training_dataset_copies_images_and_captions(tmp_path):
     assert prepared["target_directory"].endswith("dataset_v02\\10_token")
     assert (Path(prepared["target_directory"]) / "photo.jpg").is_file()
     assert (Path(prepared["target_directory"]) / "photo.txt").is_file()
+
+
+def test_training_profile_writes_simplified_config(tmp_path):
+    config_path = write_training_config(
+        tmp_path / "training.toml", "model.safetensors", "dataset", "output", "logs", 0, "quick_test"
+    )
+    config = config_path.read_text(encoding="utf-8")
+
+    assert len(TRAINING_PROFILES) == 3
+    assert "max_train_epochs = 3" in config
+    assert "network_dim = 16" in config

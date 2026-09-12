@@ -15,7 +15,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .presets import PresetStore
-from .dataset_workflow import prepare_training_dataset, scan_dataset, write_training_config
+from .dataset_workflow import TRAINING_PROFILES, prepare_training_dataset, scan_dataset, write_training_config
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -177,6 +177,9 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/jobs":
             self.send_json({"jobs": job_status()})
             return
+        if parsed.path == "/api/training/profiles":
+            self.send_json({"profiles": TRAINING_PROFILES})
+            return
         self.serve_web_file(parsed.path)
 
     def do_POST(self) -> None:
@@ -211,7 +214,8 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
                     str(payload["dataset_root"]),
                     str(PROJECT_ROOT / "models" / "lora"),
                     str(PROJECT_ROOT / "outputs" / "logs" / "localmuse_training"),
-                    int(payload.get("epochs", 10)),
+                    int(payload.get("epochs", 0)),
+                    str(payload.get("profile_id", "balanced")),
                 )
                 job_id = start_training_job(config_path)
                 self.send_json({"job_id": job_id, "config": str(config_path), "status": "started"})

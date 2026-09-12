@@ -8,6 +8,39 @@ from typing import Any
 
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
+TRAINING_PROFILES = {
+    "quick_test": {
+        "label": "Quick test",
+        "description": "Short run for checking that the dataset and setup work.",
+        "epochs": 3,
+        "repeats": 5,
+        "network_dim": 16,
+        "network_alpha": 8,
+        "learning_rate": 0.0001,
+        "text_encoder_lr": 5e-6,
+    },
+    "balanced": {
+        "label": "Balanced",
+        "description": "Recommended starting profile for a normal identity LoRA.",
+        "epochs": 10,
+        "repeats": 10,
+        "network_dim": 32,
+        "network_alpha": 16,
+        "learning_rate": 0.0001,
+        "text_encoder_lr": 5e-6,
+    },
+    "quality": {
+        "label": "Quality",
+        "description": "Longer run for a cleaner identity result and checkpoint comparison.",
+        "epochs": 13,
+        "repeats": 10,
+        "network_dim": 32,
+        "network_alpha": 16,
+        "learning_rate": 0.0001,
+        "text_encoder_lr": 5e-6,
+    },
+}
+
 
 def scan_dataset(directory: str | Path) -> dict[str, Any]:
     directory = Path(directory).resolve()
@@ -59,7 +92,12 @@ def write_training_config(
     output_dir: str,
     logging_dir: str,
     epochs: int,
+    profile_id: str = "balanced",
 ) -> Path:
+    profile = TRAINING_PROFILES.get(profile_id)
+    if profile is None:
+        raise ValueError(f"Unknown training profile: {profile_id}")
+    epochs = epochs or int(profile["epochs"])
     config = f'''pretrained_model_name_or_path = "{model_path}"
 sdxl = true
 train_data_dir = "{dataset_root}"
@@ -78,11 +116,11 @@ gradient_accumulation_steps = 1
 gradient_checkpointing = true
 max_data_loader_n_workers = 0
 network_module = "networks.lora"
-network_dim = 32
-network_alpha = 16
-learning_rate = 0.0001
+network_dim = {int(profile["network_dim"])}
+network_alpha = {int(profile["network_alpha"])}
+learning_rate = {profile["learning_rate"]}
 unet_lr = 0.0001
-text_encoder_lr = [5e-6, 5e-6]
+text_encoder_lr = [{profile["text_encoder_lr"]}, {profile["text_encoder_lr"]}]
 lr_scheduler = "cosine"
 lr_scheduler_num_cycles = 1
 lr_warmup_steps = 0.1

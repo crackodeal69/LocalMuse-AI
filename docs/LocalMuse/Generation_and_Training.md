@@ -137,6 +137,16 @@ Training is blocked when an image does not have a same-name TXT caption. Prepare
 copies are written under `data/lora_dataset_ui`; the source folder is not changed.
 Training runs in the background through the existing kohya SDXL environment.
 
+Training profiles keep the normal workflow small:
+
+- `Quick test`: 3 epochs and 5 repeats for checking a new dataset.
+- `Balanced`: 10 epochs and 10 repeats; recommended default.
+- `Quality`: 13 epochs and 10 repeats for a longer comparison run.
+
+Rank, alpha, learning rates, precision, buckets, and optimizer are controlled by
+the profile. An optional epoch override is available, while the remaining
+technical controls stay behind Advanced until real datasets validate them.
+
 For generation evaluation, five seeds are enough for a quick filter. Use 10-20
 seeds across several prompts before choosing a checkpoint or preset. Automatic
 selection should initially move rejected images to a `rejects` area or attach a
