@@ -44,6 +44,9 @@
     .view.active { display:block; }
     .notice { padding:12px; background:#eee8da; color:var(--muted); margin:12px 0; }
     .hint { color:var(--muted); font-size:13px; margin:7px 0 0; }
+    .help { display:inline-flex; position:relative; align-items:center; justify-content:center; width:16px; height:16px; margin-left:5px; border:1px solid currentColor; border-radius:50%; color:var(--muted); font:11px Arial,sans-serif; cursor:help; vertical-align:middle; }
+    .help::after { content:attr(data-tip); position:absolute; z-index:10; left:22px; bottom:-5px; width:220px; padding:9px 10px; border:1px solid var(--line); border-radius:4px; background:var(--panel); color:var(--ink); box-shadow:0 8px 20px var(--shadow); font:12px/1.35 Arial,sans-serif; font-weight:400; letter-spacing:0; text-transform:none; opacity:0; pointer-events:none; transform:translateY(4px); transition:opacity .15s,transform .15s; }
+    .help:hover::after, .help:focus::after { opacity:1; transform:translateY(0); }
     @media (max-width:850px) { .shell { padding:16px; } header { display:block; } .workspace { grid-template-columns:1fr; } .gallery { grid-template-columns:1fr 1fr; } }
   </style>
 </head>
@@ -98,6 +101,26 @@
     };
     let currentLanguage = localStorage.getItem('localmuse-language') || 'en';
     function text(selector, value) { const element=document.querySelector(selector); if(element) element.textContent=value; }
+    const helpText = {
+      weight: {en:'How strongly the LoRA changes identity and style. Higher values may improve likeness but can add age or artifacts.',ru:'Насколько сильно LoRA меняет личность и стиль. Большое значение может усилить сходство, но добавить возраст или артефакты.'},
+      seed: {en:'Controls the random starting image. The same seed makes comparisons fair.',ru:'Управляет случайным началом генерации. Один seed нужен для честного сравнения настроек.'},
+      prompt: {en:'Describe the scene, pose, clothes, expression, lighting, eyes, and background.',ru:'Опишите сцену, позу, одежду, выражение лица, свет, цвет глаз и фон.'},
+      negative: {en:'Things the model should avoid. Keep it focused; too many negatives can weaken the result.',ru:'Что модель должна избегать. Не перегружайте список: слишком много запретов ослабляет результат.'},
+      model: {en:'The base checkpoint. LoRA quality depends on using the model it was trained with.',ru:'Базовый checkpoint. Качество LoRA зависит от совместимости с моделью, на которой она обучалась.'},
+      sampler: {en:'The denoising algorithm. Keep it fixed while comparing checkpoints.',ru:'Алгоритм удаления шума. Не меняйте его при сравнении checkpoint-ов.'},
+      steps: {en:'More steps can refine details, but after a point they only make generation slower.',ru:'Больше шагов может улучшить детали, но после определённого момента только замедляет генерацию.'},
+      cfg: {en:'How closely the image follows the prompt. Very high values can look harsh or unnatural.',ru:'Насколько строго изображение следует prompt. Слишком большое значение даёт резкий или неестественный результат.'},
+      hires: {en:'Adds a second upscale and detail pass. It costs time and VRAM.',ru:'Добавляет второй проход увеличения и детализации. Требует больше времени и видеопамяти.'},
+      denoise: {en:'How much the hires pass may change the first image. Lower preserves the composition.',ru:'Насколько hires может изменить исходное изображение. Меньшее значение лучше сохраняет композицию.'},
+      face: {en:'Face refinement changes only detected face areas. Use gently to avoid a different identity.',ru:'Улучшение лица меняет только найденные области лица. Используйте мягко, чтобы не получить другую личность.'},
+      path: {en:'Folder containing source photos. Images and same-name TXT captions are checked here.',ru:'Папка с исходными фото. Здесь проверяются изображения и одноимённые TXT captions.'},
+      trigger: {en:'Unique token that identifies the person in training and generation prompts.',ru:'Уникальный token, который обозначает человека в обучении и prompt-ах.'},
+      repeats: {en:'How many times the dataset is shown per epoch. More repeats increase training exposure.',ru:'Сколько раз датасет показывается за эпоху. Больше повторов увеличивает нагрузку обучения.'},
+      profile: {en:'A safe bundle of training settings. Start with Quick test, then use Balanced.',ru:'Готовый набор настроек обучения. Начните с быстрого теста, затем используйте сбалансированный профиль.'}
+    };
+    const helpTargets = [['label[for="weight"]','weight'],['label[for="seed"]','seed'],['label[for="prompt"]','prompt'],['label[for="negative"]','negative'],['label[for="model"]','model'],['label[for="sampler"]','sampler'],['label[for="steps"]','steps'],['label[for="cfg"]','cfg'],['#hires','hires'],['label[for="denoise"]','denoise'],['#faceRefinement','face'],['label[for="datasetPath"]','path'],['label[for="trigger"]','trigger'],['label[for="repeats"]','repeats'],['label[for="trainingProfile"]','profile']];
+    function installHelp() { helpTargets.forEach(([selector,key])=>{const target=document.querySelector(selector); const label=target?.tagName==='LABEL' ? target : target?.closest('label'); if(!label || label.querySelector('.help')) return; const help=document.createElement('span'); help.className='help'; help.tabIndex=0; help.textContent='i'; help.dataset.key=key; label.appendChild(help);}); }
+    function refreshHelp(language) { document.querySelectorAll('.help').forEach(help=>{const item=helpText[help.dataset.key]; help.dataset.tip=item[language]; help.setAttribute('aria-label',item[language]);}); }
     function applyLanguage(language) {
       currentLanguage=language; localStorage.setItem('localmuse-language', language); const t=translations[language];
       text('[data-view="generateView"]', t.generate); text('[data-view="datasetView"]', t.dataset); text('#languageToggle', language==='en'?'Русский':'English');
@@ -107,6 +130,7 @@
       const datasetLabels=document.querySelectorAll('#datasetView label'); if(datasetLabels[1]) datasetLabels[1].firstChild.textContent=t.trigger; text('#datasetStats',t.noFolder); text('#datasetMessage',t.captionRequired); text('#trainingMessage',t.trainingHint); text('#trainingForm summary',t.advancedTraining);
       const profileNames={quick_test:t.quick,balanced:t.balanced,quality:t.quality}; Object.entries(profileNames).forEach(([value,label])=>{const option=document.querySelector(`#trainingProfile option[value="${value}"]`); if(option) option.textContent=label;});
       if(trainingProfiles[$('trainingProfile').value] && $('trainingProfile').onchange) $('trainingProfile').onchange();
+      refreshHelp(language);
     }
     const savedTheme = localStorage.getItem('localmuse-theme') || 'light'; document.documentElement.dataset.theme=savedTheme; $('themeToggle').textContent=savedTheme==='dark'?'Light theme':'Dark theme';
     $('themeToggle').onclick=()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark'; document.documentElement.dataset.theme=next; localStorage.setItem('localmuse-theme',next); $('themeToggle').textContent=next==='dark'?'Light theme':'Dark theme';};
@@ -126,7 +150,7 @@
     $('generator').onsubmit=async e=>{e.preventDefault(); $('status').textContent='Generating...'; try { const data=await post('/api/generate',{preset:presets.find(p=>p.id===$('preset').value),base_model:$('model').value,lora_name:$('lora').value,lora_weight:Number($('weight').value),prompt:$('prompt').value,negative_prompt:$('negative').value,seed:Number($('seed').value),steps:Number($('steps').value),cfg_scale:Number($('cfg').value),width:Number($('width').value),height:Number($('height').value),sampler:$('sampler').value,hires:$('hires').checked,hr_steps:Number($('hrSteps').value),denoising_strength:Number($('denoise').value)}); $('gallery').innerHTML=data.images.map(path=>`<figure><img src="/${path}" alt="Generated result"></figure>`).join(''); $('status').textContent='Forge connected'; } catch(e) { $('status').textContent=e.message; } };
     $('savePreset').onclick=async()=>{const id=prompt('Preset id (latin letters, numbers, underscore):'); const label=prompt('Preset name:'); if(!id||!label)return; const base=presets.find(p=>p.id===$('preset').value)||{}; await post('/api/presets',{...base,id,label,prompt_prefix:$('prompt').value,negative_prompt:$('negative').value,lora_weight:Number($('weight').value),steps:Number($('steps').value),cfg_scale:Number($('cfg').value),width:Number($('width').value),height:Number($('height').value),sampler:$('sampler').value}); alert('Preset saved locally. Reload the page to use it.'); };
     $('languageToggle').onclick=()=>applyLanguage(currentLanguage==='en'?'ru':'en');
-    init(); loadTrainingProfiles(); applyLanguage(currentLanguage);
+    installHelp(); init(); loadTrainingProfiles(); applyLanguage(currentLanguage);
   </script>
 </body>
 </html>
