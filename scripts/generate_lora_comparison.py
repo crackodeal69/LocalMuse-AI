@@ -48,6 +48,7 @@ def main() -> None:
     parser.add_argument("--prompt", default=DEFAULT_PROMPT)
     parser.add_argument("--negative-prompt", default=DEFAULT_NEGATIVE_PROMPT)
     parser.add_argument("--seed", type=int, default=241109)
+    parser.add_argument("--seeds", nargs="+", type=int, default=None)
     parser.add_argument("--steps", type=int, default=30)
     parser.add_argument("--cfg-scale", type=float, default=6.0)
     parser.add_argument("--width", type=int, default=1024)
@@ -62,6 +63,7 @@ def main() -> None:
     base_options["sd_model_checkpoint"] = args.base_model
     request_json(f"{args.api_url}/sdapi/v1/options", base_options)
 
+    seeds = args.seeds or [args.seed]
     for epoch in args.epochs:
         suffix = "" if epoch == 10 else f"-{epoch:06d}"
         checkpoint = f"nag_person_dataset_v01{suffix}.safetensors"
@@ -71,26 +73,29 @@ def main() -> None:
         shutil.copy2(source, args.forge_lora_dir / checkpoint)
 
         prompt = f"<lora:{Path(checkpoint).stem}:{args.weight}>, {args.prompt}"
-        payload = {
-            "prompt": prompt,
-            "negative_prompt": args.negative_prompt,
-            "seed": args.seed,
-            "steps": args.steps,
-            "cfg_scale": args.cfg_scale,
-            "width": args.width,
-            "height": args.height,
-            "sampler_name": "DPM++ 2M Karras",
-            "batch_size": 1,
-            "n_iter": 1,
-        }
-        result = request_json(f"{args.api_url}/sdapi/v1/txt2img", payload)
         epoch_dir = args.output_dir / f"epoch_{epoch:02d}"
         epoch_dir.mkdir(parents=True, exist_ok=True)
-        for index, encoded in enumerate(result.get("images", []), start=1):
-            image_data = encoded.split(",", 1)[-1]
-            (epoch_dir / f"seed_{args.seed}_{index}.png").write_bytes(base64.b64decode(image_data))
-        (epoch_dir / "metadata.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        print(f"Generated epoch {epoch}: {epoch_dir}")
+        for seed in seeds:
+            payload = {
+                "prompt": prompt,
+                "negative_prompt": args.negative_prompt,
+                "seed": seed,
+                "steps": args.steps,
+                "cfg_scale": args.cfg_scale,
+                "width": args.width,
+                "height": args.height,
+                "sampler_name": "DPM++ 2M Karras",
+                "batch_size": 1,
+                "n_iter": 1,
+            }
+            result = request_json(f"{args.api_url}/sdapi/v1/txt2img", payload)
+            for index, encoded in enumerate(result.get("images", []), start=1):
+                image_data = encoded.split(",", 1)[-1]
+                (epoch_dir / f"seed_{seed}_{index}.png").write_bytes(base64.b64decode(image_data))
+            (epoch_dir / f"metadata_seed_{seed}.json").write_text(
+                json.dumps(payload, indent=2) + "\n", encoding="utf-8"
+            )
+            print(f"Generated epoch {epoch}, seed {seed}: {epoch_dir}")
 
 
 if __name__ == "__main__":
