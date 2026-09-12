@@ -88,3 +88,8 @@ settings. Add `--seeds 241109 241110 241111` to generate several variations per
 checkpoint. Results are written to `outputs\generation_comparison\epoch_XX`. The
 script uses only the Python standard library and copies each selected LoRA into
 Forge automatically.
+
+The comparison script also supports `--weights 0.4 0.6 0.8 1.0 1.2` and the
+`--hires` options. The current Forge API build has a hires bug involving a missing
+`hr_additional_modules` value; use the Forge GUI for hires until that build is
+updated. Base 512x912 API generation works.
