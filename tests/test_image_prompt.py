@@ -7,6 +7,7 @@ from localmuse.dataset_analysis import DatasetAnalyzer
 from localmuse.dataset_workflow import TRAINING_PROFILES, prepare_training_dataset, scan_dataset, write_training_config
 from localmuse.image_prompt import ImagePromptGenerator
 from localmuse.presets import PresetStore
+from localmuse.ui_server import add_eye_color
 
 
 def test_generate_prompt_for_portrait_image(tmp_path):
@@ -155,3 +156,8 @@ def test_training_profile_writes_simplified_config(tmp_path):
     assert len(TRAINING_PROFILES) == 3
     assert "max_train_epochs = 3" in config
     assert "network_dim = 16" in config
+
+
+def test_add_eye_color_appends_explicit_eye_description():
+    assert add_eye_color("portrait photo", "hazel") == "portrait photo, hazel eyes"
+    assert add_eye_color("portrait photo", "none") == "portrait photo"

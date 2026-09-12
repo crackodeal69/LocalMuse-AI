@@ -77,6 +77,23 @@
       "face_refinement": false,
       "lora_weight": 0.9,
       "experimental": true
+    },
+    {
+      "id": "portrait_brown_eyes",
+      "label": "Portrait + brown eyes",
+      "description": "Identity portrait with an explicit natural brown eye color.",
+      "base_model": "realvisxlV50_v50Bakedvae.safetensors",
+      "prompt_prefix": "realistic portrait photo, natural facial features",
+      "prompt_example": "adult woman in her late thirties, brown eyes, looking at the camera, calm expression, soft natural light",
+      "negative_prompt": "blue eyes, green eyes, gray eyes, blurry, low quality, distorted face, deformed eyes, text, watermark",
+      "width": 512,
+      "height": 912,
+      "sampler": "DPM++ 2M Karras",
+      "steps": 30,
+      "cfg_scale": 4.0,
+      "hires": false,
+      "face_refinement": false,
+      "lora_weight": 0.9
     }
   ]
 }

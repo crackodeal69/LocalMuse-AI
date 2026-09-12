@@ -52,6 +52,13 @@ def build_prompt(trigger: str, prompt: str, preset: dict[str, Any]) -> str:
     return ", ".join(part for part in parts if part)
 
 
+def add_eye_color(prompt: str, eye_color: str) -> str:
+    eye_color = eye_color.strip().lower()
+    if not eye_color or eye_color == "none":
+        return prompt
+    return f"{prompt}, {eye_color} eyes"
+
+
 def generate_image(payload: dict[str, Any]) -> dict[str, Any]:
     preset = payload.get("preset", {})
     model = str(payload.get("base_model") or preset.get("base_model", ""))
@@ -63,6 +70,7 @@ def generate_image(payload: dict[str, Any]) -> dict[str, Any]:
     lora_name = str(payload.get("lora_name", "")).strip()
     lora_weight = float(payload.get("lora_weight", preset.get("lora_weight", 0.9)))
     prompt = build_prompt(str(payload.get("trigger", "nag_person")), str(payload.get("prompt", "")), preset)
+    prompt = add_eye_color(prompt, str(payload.get("eye_color", "none")))
     if lora_name:
         prompt = f"<lora:{Path(lora_name).stem}:{lora_weight}>, {prompt}"
 
