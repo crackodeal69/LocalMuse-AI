@@ -37,3 +37,18 @@ This indicates that weight tuning alone is unlikely to recover the missing eye
 identity. The next diagnostic should compare the old known-good `sid_person` LoRA
 with the same prompt and settings, then decide whether `dataset_v01` needs a new
 training run with better captions, repeats, or source images.
+
+## White Background Test
+
+Two additional five-image series were generated with epoch 10 and weight 0.9:
+
+```text
+outputs/generation_comparison/white_background_young_contact.jpg
+outputs/generation_comparison/white_background_35_40_natural_contact.jpg
+```
+
+The first series produced a clean white background but looked too young and
+over-smoothed. The second series is closer to the requested 35-40 range and keeps
+more natural skin texture. Eye identity is still not reliable enough, so the next
+face-quality test should use GUI ADetailer with the user's working settings or a
+new training run.
