@@ -2,6 +2,27 @@
 
 ## Manual Training
 
+## Temporary Local Launch
+
+For the current development setup, start both Forge and LocalMuse with one
+double-click:
+
+```text
+scripts\start_localmuse.bat
+```
+
+This opens two command windows. Keep them open while using the application, then
+close them when finished. LocalMuse opens at:
+
+```text
+http://127.0.0.1:7861
+```
+
+The Forge API runs in the background at `http://127.0.0.1:7860`.
+
+This batch launcher is a temporary developer workflow. A proper `.exe` installer
+and a single-user application launcher belong to the final packaging stage.
+
 The reproducible training config is committed at:
 
 ```text

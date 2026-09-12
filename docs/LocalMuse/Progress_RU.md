@@ -77,6 +77,8 @@
   Eyeful и сохранение пользовательских пресетов.
 - В UI добавлен раздел `Dataset & training`: scan папки, запуск captions,
   подготовка versioned-копии под kohya и фоновый запуск LoRA.
+- Добавлен временный единый batch-запуск `scripts\start_localmuse.bat` для Forge
+  API и LocalMuse UI; `.exe` оставлен на финальный этап упаковки.
 
 ## На чем остановились
 
