@@ -63,6 +63,8 @@ training, evaluation, and generation as separate components.
 - All 30 images are readable with no exact duplicates; 29 have one dimension below
   512 px and need to be considered in training settings.
 - The current test coverage covers prompt generation, caption cleanup, and dataset QA.
+- Batch files for repeating training and installing a selected checkpoint into Forge
+  are documented in `Generation_and_Training.md`.
 
 ## Stopping Point
 
