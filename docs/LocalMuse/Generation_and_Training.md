@@ -120,3 +120,26 @@ configs\user_presets.json
 ```
 
 This keeps user preferences separate from versioned built-in presets.
+
+## Dataset and Training UI
+
+The LocalMuse UI now has a `Dataset & training` view at `http://127.0.0.1:7861`.
+Its workflow is:
+
+```text
+scan photo folder
+    -> generate or review captions
+    -> prepare a versioned kohya dataset
+    -> start LoRA training
+```
+
+Training is blocked when an image does not have a same-name TXT caption. Prepared
+copies are written under `data/lora_dataset_ui`; the source folder is not changed.
+Training runs in the background through the existing kohya SDXL environment.
+
+For generation evaluation, five seeds are enough for a quick filter. Use 10-20
+seeds across several prompts before choosing a checkpoint or preset. Automatic
+selection should initially move rejected images to a `rejects` area or attach a
+rating, rather than permanently deleting them. A later curation feature can rank
+large batches using face quality, identity similarity, prompt adherence, and
+duplicate detection.

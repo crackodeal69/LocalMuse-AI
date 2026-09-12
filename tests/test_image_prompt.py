@@ -4,6 +4,7 @@ from PIL import Image
 
 from localmuse.caption_cleanup import CaptionCleaner
 from localmuse.dataset_analysis import DatasetAnalyzer
+from localmuse.dataset_workflow import prepare_training_dataset, scan_dataset
 from localmuse.image_prompt import ImagePromptGenerator
 from localmuse.presets import PresetStore
 
@@ -128,3 +129,18 @@ def test_preset_store_hides_experimental_and_saves_user_preset(tmp_path):
     store.save_user_preset({"id": "my_style", "label": "My style", "steps": 28})
 
     assert store.get("my_style")["steps"] == 28
+
+
+def test_prepare_training_dataset_copies_images_and_captions(tmp_path):
+    source = tmp_path / "source"
+    source.mkdir()
+    Image.new("RGB", (640, 900)).save(source / "photo.jpg")
+    (source / "photo.txt").write_text("token, portrait", encoding="utf-8")
+
+    report = scan_dataset(source)
+    prepared = prepare_training_dataset(source, tmp_path / "prepared", "token", 10, "dataset_v02")
+
+    assert report["image_count"] == 1
+    assert prepared["target_directory"].endswith("dataset_v02\\10_token")
+    assert (Path(prepared["target_directory"]) / "photo.jpg").is_file()
+    assert (Path(prepared["target_directory"]) / "photo.txt").is_file()

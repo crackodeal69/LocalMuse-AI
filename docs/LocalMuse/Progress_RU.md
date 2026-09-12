@@ -75,6 +75,8 @@
   описаны в `Generation_and_Training.md`.
 - Добавлена основа preset-системы для будущего UI: обычный режим, Advanced-режим,
   Eyeful и сохранение пользовательских пресетов.
+- В UI добавлен раздел `Dataset & training`: scan папки, запуск captions,
+  подготовка versioned-копии под kohya и фоновый запуск LoRA.
 
 ## На чем остановились
 

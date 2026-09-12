@@ -4,6 +4,8 @@ import base64
 import json
 import mimetypes
 import shutil
+import subprocess
+import uuid
 import urllib.error
 import urllib.request
 from datetime import datetime
@@ -13,6 +15,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .presets import PresetStore
+from .dataset_workflow import prepare_training_dataset, scan_dataset, write_training_config
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +25,11 @@ OUTPUT_ROOT = PROJECT_ROOT / "outputs" / "localmuse_ui"
 FORGE_LORA_DIR = Path(r"E:\ai_work\webui\models\Lora")
 FORGE_API_URL = "http://127.0.0.1:7860"
 WEB_ROOT = PROJECT_ROOT / "localmuse" / "web"
+DATASET_ROOT = PROJECT_ROOT / "data" / "lora_dataset_ui"
+CAPTION_PYTHON = Path(r"E:\ai_work\kohya_ss\.venv\Scripts\python.exe")
+ACCELERATE = Path(r"E:\ai_work\kohya_ss\.venv\Scripts\accelerate.exe")
+KOHYA_ROOT = Path(r"E:\ai_work\kohya_ss\sd-scripts")
+JOBS: dict[str, subprocess.Popen[str]] = {}
 
 
 def request_json(path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -98,6 +106,49 @@ def generate_image(payload: dict[str, Any]) -> dict[str, Any]:
     return {"images": image_paths, "metadata": request_payload}
 
 
+def start_caption_job(directory: str, trigger_token: str) -> str:
+    job_id = uuid.uuid4().hex[:10]
+    process = subprocess.Popen(
+        [
+            str(CAPTION_PYTHON),
+            "-m",
+            "tools.generate_captions",
+            directory,
+            "--trigger",
+            trigger_token,
+            "--cache-dir",
+            str(PROJECT_ROOT / "models" / "huggingface"),
+        ],
+        cwd=PROJECT_ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    JOBS[job_id] = process
+    return job_id
+
+
+def start_training_job(config_path: Path) -> str:
+    job_id = uuid.uuid4().hex[:10]
+    process = subprocess.Popen(
+        [str(ACCELERATE), "launch", "--num_cpu_threads_per_process=2", "sdxl_train_network.py", "--config_file", str(config_path)],
+        cwd=KOHYA_ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    JOBS[job_id] = process
+    return job_id
+
+
+def job_status() -> dict[str, str | None]:
+    result = {}
+    for job_id, process in list(JOBS.items()):
+        code = process.poll()
+        result[job_id] = "running" if code is None else f"finished:{code}"
+    return result
+
+
 class LocalMuseHandler(BaseHTTPRequestHandler):
     store = PresetStore(PRESET_PATH, USER_PRESET_PATH)
 
@@ -117,6 +168,15 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
             except Exception as error:
                 self.send_json({"forge": False, "error": str(error)}, status=503)
             return
+        if parsed.path == "/api/dataset":
+            from urllib.parse import parse_qs
+
+            query = parse_qs(parsed.query)
+            self.send_json(scan_dataset(query.get("path", [""])[0]))
+            return
+        if parsed.path == "/api/jobs":
+            self.send_json({"jobs": job_status()})
+            return
         self.serve_web_file(parsed.path)
 
     def do_POST(self) -> None:
@@ -128,6 +188,33 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
                 return
             if self.path == "/api/generate":
                 self.send_json(generate_image(payload))
+                return
+            if self.path == "/api/dataset/captions":
+                job_id = start_caption_job(str(payload["directory"]), str(payload["trigger_token"]))
+                self.send_json({"job_id": job_id, "status": "started"})
+                return
+            if self.path == "/api/dataset/prepare":
+                result = prepare_training_dataset(
+                    payload["directory"],
+                    DATASET_ROOT,
+                    str(payload["trigger_token"]),
+                    int(payload.get("repeats", 10)),
+                    str(payload.get("version", "dataset_v02")),
+                )
+                result["dataset_root"] = str(Path(result["target_directory"]).parent)
+                self.send_json(result)
+                return
+            if self.path == "/api/training/start":
+                config_path = write_training_config(
+                    PROJECT_ROOT / "configs" / "lora_ui_training.toml",
+                    str(payload["model_path"]),
+                    str(payload["dataset_root"]),
+                    str(PROJECT_ROOT / "models" / "lora"),
+                    str(PROJECT_ROOT / "outputs" / "logs" / "localmuse_training"),
+                    int(payload.get("epochs", 10)),
+                )
+                job_id = start_training_job(config_path)
+                self.send_json({"job_id": job_id, "config": str(config_path), "status": "started"})
                 return
             self.send_json({"error": "Not found"}, status=404)
         except Exception as error:
