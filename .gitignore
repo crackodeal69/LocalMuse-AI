@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local datasets, model weights, and generated outputs
+data/
+models/
+outputs/
