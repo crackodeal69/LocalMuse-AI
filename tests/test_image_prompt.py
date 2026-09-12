@@ -5,6 +5,7 @@ from PIL import Image
 from localmuse.caption_cleanup import CaptionCleaner
 from localmuse.dataset_analysis import DatasetAnalyzer
 from localmuse.image_prompt import ImagePromptGenerator
+from localmuse.presets import PresetStore
 
 
 def test_generate_prompt_for_portrait_image(tmp_path):
@@ -110,3 +111,20 @@ def test_dataset_analyzer_reports_missing_captions_and_small_images(tmp_path):
     assert report["image_count"] == 2
     assert report["read_error_count"] == 0
     assert report["warning_counts"] == {"small_dimension": 1, "missing_caption": 1}
+
+
+def test_preset_store_hides_experimental_and_saves_user_preset(tmp_path):
+    built_in = tmp_path / "presets.json"
+    built_in.write_text(
+        '{"version": 1, "presets": ['
+        '{"id": "basic", "label": "Basic"},'
+        '{"id": "experimental", "label": "Experimental", "experimental": true}'
+        ']}',
+        encoding="utf-8",
+    )
+    store = PresetStore(built_in)
+
+    assert [preset["id"] for preset in store.list_presets()] == ["basic"]
+    store.save_user_preset({"id": "my_style", "label": "My style", "steps": 28})
+
+    assert store.get("my_style")["steps"] == 28
