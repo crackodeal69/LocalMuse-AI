@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LocalMuse Studio</title>
+  <style>
+    :root { --ink:#1d2522; --muted:#68736d; --paper:#f4f0e8; --panel:#fffdf8; --line:#d8d4ca; --accent:#c85432; --accent-dark:#8e3322; --olive:#71806c; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 80% 0%, #e8d6c4 0, transparent 34%), var(--paper); font:15px/1.45 Georgia, serif; }
+    button, input, select, textarea { font:inherit; }
+    button { cursor:pointer; }
+    .shell { max-width:1260px; margin:auto; padding:28px; }
+    header { display:flex; justify-content:space-between; align-items:end; gap:20px; margin-bottom:24px; }
+    .kicker { color:var(--accent); text-transform:uppercase; letter-spacing:.14em; font:12px Arial,sans-serif; font-weight:700; }
+    h1 { margin:4px 0 0; font-size:clamp(32px,5vw,58px); line-height:.98; font-weight:500; }
+    .status { color:var(--muted); font:13px Arial,sans-serif; }
+    .workspace { display:grid; grid-template-columns:minmax(320px, .9fr) minmax(430px, 1.35fr); gap:22px; align-items:start; }
+    .panel { background:color-mix(in srgb, var(--panel) 91%, transparent); border:1px solid var(--line); padding:22px; box-shadow:0 12px 30px #66523a12; }
+    label { display:block; margin:15px 0 6px; font:12px Arial,sans-serif; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    textarea, input, select { width:100%; border:1px solid var(--line); background:#fffefa; color:var(--ink); padding:11px 12px; border-radius:4px; }
+    textarea { min-height:104px; resize:vertical; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .range-line { display:flex; gap:12px; align-items:center; }
+    input[type=range] { accent-color:var(--accent); padding:0; }
+    output { min-width:42px; text-align:right; font:13px Arial,sans-serif; color:var(--accent-dark); }
+    .actions { display:flex; gap:10px; margin-top:20px; }
+    .primary { border:0; background:var(--accent); color:#fff; padding:13px 20px; font-weight:700; }
+    .secondary { border:1px solid var(--line); background:transparent; padding:12px 16px; }
+    details { border-top:1px solid var(--line); margin-top:22px; padding-top:16px; }
+    summary { cursor:pointer; font-weight:700; }
+    .gallery { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .gallery figure { margin:0; background:#e8e3d9; min-height:230px; }
+    .gallery img { display:block; width:100%; height:auto; }
+    .empty { color:var(--muted); padding:42px 12px; text-align:center; border:1px dashed var(--line); grid-column:1/-1; }
+    .hint { color:var(--muted); font-size:13px; margin:7px 0 0; }
+    @media (max-width:850px) { .shell { padding:16px; } header { display:block; } .workspace { grid-template-columns:1fr; } .gallery { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header><div><div class="kicker">Local image studio</div><h1>Make a face, keep the feeling.</h1></div><div class="status" id="status">Checking Forge...</div></header>
+    <section class="workspace">
+      <form class="panel" id="generator">
+        <label for="preset">Preset</label><select id="preset"></select>
+        <p class="hint" id="presetHint"></p>
+        <label for="lora">Identity model</label><select id="lora"></select>
+        <div class="row"><div><label for="weight">LoRA strength</label><div class="range-line"><input id="weight" type="range" min="0" max="1.3" step="0.05" value="0.9"><output id="weightValue">0.90</output></div></div><div><label for="seed">Seed</label><input id="seed" type="number" value="241109"></div></div>
+        <label for="prompt">What should happen?</label><textarea id="prompt" placeholder="brown eyes, looking at the camera, white shirt"></textarea>
+        <label for="negative">Avoid</label><textarea id="negative" placeholder="blurry, distorted face, watermark"></textarea>
+        <div class="actions"><button class="primary" type="submit">Generate image</button><button class="secondary" type="button" id="savePreset">Save as preset</button></div>
+        <details><summary>Advanced controls</summary>
+          <div class="row"><div><label for="model">Base model</label><select id="model"><option>realvisxlV50_v50Bakedvae.safetensors</option><option>cyberrealisticXL_v100.safetensors</option></select></div><div><label for="sampler">Sampler</label><select id="sampler"><option>DPM++ 2M Karras</option><option>Euler a</option><option>Euler</option></select></div></div>
+          <div class="row"><div><label for="steps">Steps</label><input id="steps" type="number" min="1" max="100" value="30"></div><div><label for="cfg">CFG</label><input id="cfg" type="number" min="1" max="20" step="0.5" value="4"></div></div>
+          <div class="row"><div><label for="width">Width</label><input id="width" type="number" value="512"></div><div><label for="height">Height</label><input id="height" type="number" value="912"></div></div>
+          <label><input id="hires" type="checkbox"> Enable hires pass</label>
+          <div class="row"><div><label for="hrSteps">Hires steps</label><input id="hrSteps" type="number" value="10"></div><div><label for="denoise">Hires denoise</label><input id="denoise" type="number" min="0" max="1" step="0.01" value="0.25"></div></div>
+          <label><input id="faceRefinement" type="checkbox"> Face refinement (Eyeful, experimental)</label>
+          <div class="row"><div><label for="maskBlur">Mask blur</label><input id="maskBlur" type="number" value="4"></div><div><label for="faceStrength">Face strength</label><input id="faceStrength" type="number" step="0.01" value="0.37"></div></div>
+          <label for="padding">Face padding</label><input id="padding" type="number" value="68">
+          <p class="hint">Advanced values are sent to Forge. Eyeful integration is marked experimental until its Forge API contract is verified.</p>
+        </details>
+      </form>
+      <section class="panel"><div class="kicker">Results</div><h2>Generation gallery</h2><div class="gallery" id="gallery"><div class="empty">Your generated images will appear here.</div></div></section>
+    </section>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id); let presets = [];
+    async function get(path) { const r = await fetch(path); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+    async function post(path, body) { const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}); const data=await r.json(); if (!r.ok) throw new Error(data.error || 'Request failed'); return data; }
+    function setValue(id, value) { if (value !== undefined && value !== null) $(id).value=value; }
+    function applyPreset(p) { $('presetHint').textContent=p.description||''; setValue('model',p.base_model); setValue('weight',p.lora_weight); setValue('negative',p.negative_prompt); setValue('steps',p.steps); setValue('cfg',p.cfg_scale); setValue('width',p.width); setValue('height',p.height); setValue('sampler',p.sampler); setValue('hires',p.hires); setValue('hrSteps',p.hr_steps); setValue('denoise',p.denoising_strength); $('weightValue').textContent=Number($('weight').value).toFixed(2); }
+    async function init() { try { const health=await get('/api/health'); $('status').textContent=health.forge?'Forge connected':'Forge unavailable'; const data=await get('/api/presets'); presets=data.presets; $('preset').innerHTML=presets.map(p=>`<option value="${p.id}">${p.label}${p.experimental?' · experimental':''}</option>`).join(''); $('preset').onchange=()=>applyPreset(presets.find(p=>p.id===$('preset').value)); const loras=await get('/api/loras'); $('lora').innerHTML='<option value="">No LoRA</option>'+loras.map(x=>`<option>${x}</option>`).join(''); applyPreset(presets[0]); } catch(e) { $('status').textContent='Forge unavailable'; console.error(e); } }
+    $('weight').oninput=()=> $('weightValue').textContent=Number($('weight').value).toFixed(2);
+    $('generator').onsubmit=async e=>{e.preventDefault(); $('status').textContent='Generating...'; try { const data=await post('/api/generate',{preset:presets.find(p=>p.id===$('preset').value),base_model:$('model').value,lora_name:$('lora').value,lora_weight:Number($('weight').value),prompt:$('prompt').value,negative_prompt:$('negative').value,seed:Number($('seed').value),steps:Number($('steps').value),cfg_scale:Number($('cfg').value),width:Number($('width').value),height:Number($('height').value),sampler:$('sampler').value,hires:$('hires').checked,hr_steps:Number($('hrSteps').value),denoising_strength:Number($('denoise').value)}); $('gallery').innerHTML=data.images.map(path=>`<figure><img src="/${path}" alt="Generated result"></figure>`).join(''); $('status').textContent='Forge connected'; } catch(e) { $('status').textContent=e.message; } };
+    $('savePreset').onclick=async()=>{const id=prompt('Preset id (latin letters, numbers, underscore):'); const label=prompt('Preset name:'); if(!id||!label)return; const base=presets.find(p=>p.id===$('preset').value)||{}; await post('/api/presets',{...base,id,label,prompt_prefix:$('prompt').value,negative_prompt:$('negative').value,lora_weight:Number($('weight').value),steps:Number($('steps').value),cfg_scale:Number($('cfg').value),width:Number($('width').value),height:Number($('height').value),sampler:$('sampler').value}); alert('Preset saved locally. Reload the page to use it.'); };
+    init();
+  </script>
+</body>
+</html>
