@@ -134,6 +134,15 @@ def generate_image(payload: dict[str, Any]) -> dict[str, Any]:
             }
         )
 
+    if payload.get("face_refinement", preset.get("face_refinement", False)):
+        request_payload["alwayson_scripts"] = {
+            "ADetailer": {
+                "args": [
+                    {"ad_model": "Eyeful_v2-Paired.pt", "ad_denoising_strength": float(payload.get("face_strength", 0.37)), "ad_mask_blur": int(payload.get("mask_blur", 4)), "ad_inpaint_only_masked_padding": int(payload.get("face_padding", 68)), "ad_use_steps": True, "ad_steps": int(payload.get("face_steps", 10))}
+                ]
+            }
+        }
+
     result = request_json("/sdapi/v1/txt2img", request_payload)
     output_dir = OUTPUT_ROOT / datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir.mkdir(parents=True, exist_ok=True)

@@ -15,7 +15,7 @@
       "steps": 30,
       "cfg_scale": 4.0,
       "hires": false,
-      "face_refinement": false,
+      "face_refinement": true,
       "lora_weight": 0.9
     },
     {
@@ -32,7 +32,7 @@
       "steps": 30,
       "cfg_scale": 4.0,
       "hires": false,
-      "face_refinement": false,
+      "face_refinement": true,
       "lora_weight": 0.9
     },
     {
@@ -74,7 +74,7 @@
       "steps": 30,
       "cfg_scale": 4.0,
       "hires": false,
-      "face_refinement": false,
+      "face_refinement": true,
       "lora_weight": 0.9,
       "experimental": true
     },
@@ -92,7 +92,7 @@
       "steps": 30,
       "cfg_scale": 4.0,
       "hires": false,
-      "face_refinement": false,
+      "face_refinement": true,
       "lora_weight": 0.9
     }
   ]
