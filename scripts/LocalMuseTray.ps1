@@ -39,24 +39,39 @@ function Test-Endpoint([string]$url) {
     catch { return $_.Exception.Response -ne $null }
 }
 
+function Test-Listening([int]$port) {
+    return $null -ne (Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $port -State Listen -ErrorAction SilentlyContinue)
+}
+
+function Wait-Endpoint([string]$url, [int]$seconds = 60) {
+    for ($i = 0; $i -lt $seconds; $i++) {
+        if (Test-Endpoint $url) { return $true }
+        Start-Sleep -Seconds 1
+    }
+    return $false
+}
+
 function Stop-PortOwner([int]$port) {
     Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $port -State Listen -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty OwningProcess -Unique |
         ForEach-Object { Stop-LocalMuseTree $_ }
 }
 
-if ((Test-NetConnection 127.0.0.1 -Port 7860 -InformationLevel Quiet) -and -not (Test-Endpoint 'http://127.0.0.1:7860/sdapi/v1/options')) {
+if ((Test-Listening 7860) -and -not (Test-Endpoint 'http://127.0.0.1:7860/sdapi/v1/options')) {
     Stop-PortOwner 7860
 }
-if (-not (Test-NetConnection 127.0.0.1 -Port 7860 -InformationLevel Quiet)) {
+if (-not (Test-Listening 7860)) {
     Start-LocalMuseService 'Forge API' "call `"$PSScriptRoot\start_forge_api.bat`"" 'forge.log'
 }
-if ((Test-NetConnection 127.0.0.1 -Port 7861 -InformationLevel Quiet) -and -not (Test-Endpoint 'http://127.0.0.1:7861/api/health')) {
+if ((Test-Listening 7861) -and -not (Test-Endpoint 'http://127.0.0.1:7861/api/health')) {
     Stop-PortOwner 7861
 }
-if (-not (Test-NetConnection 127.0.0.1 -Port 7861 -InformationLevel Quiet)) {
+if (-not (Test-Listening 7861)) {
     Start-LocalMuseService 'LocalMuse UI' "call `"$PSScriptRoot\start_localmuse_ui.bat`"" 'ui.log'
 }
+
+Wait-Endpoint 'http://127.0.0.1:7861/api/health' 90 | Out-Null
+Start-Process 'http://127.0.0.1:7861'
 
 $notify = New-Object System.Windows.Forms.NotifyIcon
 $notify.Icon = [System.Drawing.SystemIcons]::Application
