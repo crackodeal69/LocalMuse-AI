@@ -35,6 +35,8 @@ Keep it synchronized with `Progress_RU.md` after every meaningful change.
   checkpoints in the project-owned `models/` tree; model files remain ignored by Git.
 - Replaced hard-coded Forge and kohya paths in the UI and Forge helper scripts
   with environment-configurable paths and documented fallbacks.
+- Updated LoRA discovery to include project-owned checkpoints and added base-model
+  existence validation before training starts.
 
 ## Not Completed Yet
 
@@ -84,6 +86,11 @@ The first SDXL LoRA baseline works technically, but `nag_person_dataset_v01` kee
 eyes and identity less reliably than the older `sid_person` model. The UI now
 covers generation and profile-based training. Next: job/progress UI, result curation,
 and preparation of `dataset_v02`.
+
+### 2026-09-14
+
+- Bugbot found no branch diff because `main` was synchronized with `origin/main`.
+- Manual runtime review fixed LoRA discovery and training model-path validation.
 
 ## Session Notes
 

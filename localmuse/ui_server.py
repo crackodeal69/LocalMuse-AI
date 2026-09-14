@@ -28,11 +28,23 @@ FORGE_LORA_DIR = Path(os.environ.get("LOCALMUSE_FORGE_LORA_DIR", str(FORGE_ROOT 
 FORGE_API_URL = os.environ.get("LOCALMUSE_FORGE_API_URL", "http://127.0.0.1:7860")
 WEB_ROOT = PROJECT_ROOT / "localmuse" / "web"
 DATASET_ROOT = PROJECT_ROOT / "data" / "lora_dataset_ui"
+PROJECT_LORA_DIR = PROJECT_ROOT / "models" / "lora"
 KOHYA_ROOT = Path(os.environ.get("LOCALMUSE_KOHYA_ROOT", r"E:\ai_work\kohya_ss\sd-scripts"))
 KOHYA_VENV = Path(os.environ.get("LOCALMUSE_KOHYA_VENV", str(KOHYA_ROOT.parent / ".venv")))
 CAPTION_PYTHON = Path(os.environ.get("LOCALMUSE_CAPTION_PYTHON", str(KOHYA_VENV / "Scripts" / "python.exe")))
 ACCELERATE = Path(os.environ.get("LOCALMUSE_ACCELERATE", str(KOHYA_VENV / "Scripts" / "accelerate.exe")))
 JOBS: dict[str, subprocess.Popen[str]] = {}
+
+
+def available_loras() -> list[str]:
+    """Return project-owned and Forge-installed LoRAs without duplicates."""
+    names = {
+        path.name
+        for directory in (PROJECT_LORA_DIR, FORGE_LORA_DIR)
+        if directory.is_dir()
+        for path in directory.glob("*.safetensors")
+    }
+    return sorted(names, key=str.casefold)
 
 
 def request_json(path: str, payload: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -169,8 +181,7 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
             self.send_json({"presets": self.store.list_presets(include_experimental=True)})
             return
         if parsed.path == "/api/loras":
-            loras = sorted(path.name for path in FORGE_LORA_DIR.glob("*.safetensors"))
-            self.send_json({"loras": loras})
+            self.send_json({"loras": available_loras()})
             return
         if parsed.path == "/api/health":
             try:
@@ -219,9 +230,12 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
                 self.send_json(result)
                 return
             if self.path == "/api/training/start":
+                model_path = Path(str(payload["model_path"])).expanduser().resolve()
+                if not model_path.is_file():
+                    raise FileNotFoundError(f"Base model not found: {model_path}")
                 config_path = write_training_config(
                     PROJECT_ROOT / "configs" / "lora_ui_training.toml",
-                    str(payload["model_path"]),
+                    str(model_path),
                     str(payload["dataset_root"]),
                     str(PROJECT_ROOT / "models" / "lora"),
                     str(PROJECT_ROOT / "outputs" / "logs" / "localmuse_training"),
