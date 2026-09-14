@@ -9,13 +9,12 @@ $env:LOCALMUSE_TRAY_PID = [string]$PID
 
 function Start-LocalMuseService([string]$title, [string]$command, [string]$logName) {
     $logPath = Join-Path $logRoot $logName
-    $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes("Set-Location -LiteralPath '$projectRoot'; & cmd.exe /c '$command' 2>&1 | Tee-Object -FilePath '$logPath'"))
-    $process = Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded -PassThru
+    $process = Start-Process cmd.exe -WindowStyle Hidden -WorkingDirectory $projectRoot -ArgumentList '/d', '/c', "$command > `"$logPath`" 2>&1" -PassThru
     $script:servicePids += $process.Id
 }
 
-Start-LocalMuseService 'Forge API' "call '$PSScriptRoot\start_forge_api.bat'" 'forge.log'
-Start-LocalMuseService 'LocalMuse UI' "call '$PSScriptRoot\start_localmuse_ui.bat'" 'ui.log'
+Start-LocalMuseService 'Forge API' "call `"$PSScriptRoot\start_forge_api.bat`"" 'forge.log'
+Start-LocalMuseService 'LocalMuse UI' "call `"$PSScriptRoot\start_localmuse_ui.bat`"" 'ui.log'
 
 $notify = New-Object System.Windows.Forms.NotifyIcon
 $notify.Icon = [System.Drawing.SystemIcons]::Application
