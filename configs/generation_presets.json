@@ -79,7 +79,7 @@
       "experimental": true
     },
     {
-      "id": "portrait_brown_eyes",
+      "id": "portrait_natural_light",
       "label": "Portrait · natural light",
       "description": "Identity portrait with soft natural light and a calm expression.",
       "base_model": "realvisxlV50_v50Bakedvae.safetensors",
