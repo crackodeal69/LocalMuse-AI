@@ -89,6 +89,7 @@ def generate_image(payload: dict[str, Any]) -> dict[str, Any]:
     if lora_name:
         prompt = f"<lora:{Path(lora_name).stem}:{lora_weight}>, {prompt}"
 
+    batch_size = max(1, min(100, int(payload.get("batch_size", 1))))
     request_payload: dict[str, Any] = {
         "prompt": prompt,
         "negative_prompt": str(payload.get("negative_prompt") or preset.get("negative_prompt", "")),
@@ -98,7 +99,7 @@ def generate_image(payload: dict[str, Any]) -> dict[str, Any]:
         "width": int(payload.get("width", preset.get("width", 512))),
         "height": int(payload.get("height", preset.get("height", 912))),
         "sampler_name": str(payload.get("sampler", preset.get("sampler", "DPM++ 2M Karras"))),
-        "batch_size": 1,
+        "batch_size": batch_size,
         "n_iter": 1,
     }
     if payload.get("hires", preset.get("hires", False)):
@@ -126,7 +127,7 @@ def generate_image(payload: dict[str, Any]) -> dict[str, Any]:
     (output_dir / "metadata.json").write_text(
         json.dumps(request_payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
-    return {"images": image_paths, "metadata": request_payload}
+    return {"images": image_paths, "folder": str(output_dir), "metadata": request_payload}
 
 
 def start_caption_job(directory: str, trigger_token: str) -> str:
@@ -213,6 +214,14 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
                 return
             if self.path == "/api/generate":
                 self.send_json(generate_image(payload))
+                return
+            if self.path == "/api/open-folder":
+                folder = (PROJECT_ROOT / str(payload["folder"])).resolve()
+                output_root = OUTPUT_ROOT.resolve()
+                if output_root not in folder.parents or not folder.is_dir():
+                    raise ValueError("Only LocalMuse output folders can be opened")
+                os.startfile(folder)
+                self.send_json({"opened": True})
                 return
             if self.path == "/api/dataset/captions":
                 job_id = start_caption_job(str(payload["directory"]), str(payload["trigger_token"]))
