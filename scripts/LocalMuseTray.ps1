@@ -1,15 +1,32 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class LocalMuseJob {
+  [StructLayout(LayoutKind.Sequential)] public struct JOBOBJECT_BASIC_LIMIT_INFORMATION { public long PerProcessUserTimeLimit; public long PerJobUserTimeLimit; public uint LimitFlags; public UIntPtr MinimumWorkingSetSize; public UIntPtr MaximumWorkingSetSize; public uint ActiveProcessLimit; public UIntPtr Affinity; public uint PriorityClass; public uint SchedulingClass; }
+  [StructLayout(LayoutKind.Sequential)] public struct IO_COUNTERS { public ulong ReadOperationCount, WriteOperationCount, OtherOperationCount, ReadTransferCount, WriteTransferCount, OtherTransferCount; }
+  [StructLayout(LayoutKind.Sequential)] public struct JOBOBJECT_EXTENDED_LIMIT_INFORMATION { public JOBOBJECT_BASIC_LIMIT_INFORMATION BasicLimitInformation; public IO_COUNTERS IoInfo; public UIntPtr ProcessMemoryLimit, JobMemoryLimit, PeakProcessMemoryUsed, PeakJobMemoryUsed; }
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode)] static extern IntPtr CreateJobObject(IntPtr a, string n);
+  [DllImport("kernel32.dll", SetLastError=true)] static extern bool SetInformationJobObject(IntPtr h, int c, ref JOBOBJECT_EXTENDED_LIMIT_INFORMATION i, uint l);
+  [DllImport("kernel32.dll", SetLastError=true)] public static extern bool AssignProcessToJobObject(IntPtr h, IntPtr p);
+  [DllImport("kernel32.dll", SetLastError=true)] public static extern bool CloseHandle(IntPtr h);
+  public static IntPtr CreateKillOnClose() { var h=CreateJobObject(IntPtr.Zero,null); var i=new JOBOBJECT_EXTENDED_LIMIT_INFORMATION(); i.BasicLimitInformation.LimitFlags=0x2000; SetInformationJobObject(h,9,ref i,(uint)Marshal.SizeOf(i)); return h; }
+}
+'@
+
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $logRoot = Join-Path $projectRoot 'outputs\localmuse_logs'
 New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 $servicePids = @()
 $env:LOCALMUSE_TRAY_PID = [string]$PID
+$jobHandle = [LocalMuseJob]::CreateKillOnClose()
 
 function Start-LocalMuseService([string]$title, [string]$command, [string]$logName) {
     $logPath = Join-Path $logRoot $logName
     $process = Start-Process cmd.exe -WindowStyle Hidden -WorkingDirectory $projectRoot -ArgumentList '/d', '/c', "$command > `"$logPath`" 2>&1" -PassThru
+    [LocalMuseJob]::AssignProcessToJobObject($jobHandle, $process.Handle) | Out-Null
     $script:servicePids += $process.Id
 }
 
@@ -35,7 +52,7 @@ $logs = $menu.Items.Add('Open logs')
 $logs.Add_Click({ Start-Process explorer.exe $logRoot })
 $menu.Items.Add('-') | Out-Null
 $stop = $menu.Items.Add('Stop LocalMuse services')
-$stop.Add_Click({ $servicePids | ForEach-Object { Stop-LocalMuseTree $_ }; $notify.Visible = $false; $notify.Dispose(); [System.Windows.Forms.Application]::Exit() })
+$stop.Add_Click({ $servicePids | ForEach-Object { Stop-LocalMuseTree $_ }; [LocalMuseJob]::CloseHandle($jobHandle) | Out-Null; $notify.Visible = $false; $notify.Dispose(); [System.Windows.Forms.Application]::Exit() })
 $notify.ContextMenuStrip = $menu
 $notify.Add_DoubleClick({ Start-Process 'http://127.0.0.1:7861' })
 
