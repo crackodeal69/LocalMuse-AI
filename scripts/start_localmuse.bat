@@ -14,5 +14,6 @@ echo.
 echo LocalMuse UI will be available at:
 echo http://127.0.0.1:7861
 echo.
-echo Keep both windows open while using LocalMuse.
-pause
+echo Forge API: http://127.0.0.1:7860
+echo Two service windows were opened. Close them when finished.
+timeout /t 5 /nobreak >nul

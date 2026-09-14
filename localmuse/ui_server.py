@@ -62,6 +62,10 @@ def request_json(path: str, payload: dict[str, Any] | None = None) -> dict[str, 
         raise RuntimeError(f"Forge API {error.code}: {detail}") from error
 
 
+def interrupt_generation() -> None:
+    request_json("/sdapi/v1/interrupt", {})
+
+
 def build_prompt(trigger: str, prompt: str, preset: dict[str, Any]) -> str:
     parts = [trigger.strip(), preset.get("prompt_prefix", "").strip(), prompt.strip()]
     return ", ".join(part for part in parts if part)
@@ -214,6 +218,10 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
                 return
             if self.path == "/api/generate":
                 self.send_json(generate_image(payload))
+                return
+            if self.path == "/api/generate/stop":
+                interrupt_generation()
+                self.send_json({"stopped": True})
                 return
             if self.path == "/api/open-folder":
                 folder = (PROJECT_ROOT / str(payload["folder"])).resolve()
