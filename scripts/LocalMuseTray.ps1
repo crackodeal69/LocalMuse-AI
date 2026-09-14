@@ -34,8 +34,25 @@ function Stop-LocalMuseTree([int]$processId) {
     & taskkill.exe /PID $processId /T /F 2>$null | Out-Null
 }
 
+function Test-Endpoint([string]$url) {
+    try { Invoke-WebRequest -Uri $url -TimeoutSec 3 -UseBasicParsing | Out-Null; return $true }
+    catch { return $_.Exception.Response -ne $null }
+}
+
+function Stop-PortOwner([int]$port) {
+    Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort $port -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty OwningProcess -Unique |
+        ForEach-Object { Stop-LocalMuseTree $_ }
+}
+
+if ((Test-NetConnection 127.0.0.1 -Port 7860 -InformationLevel Quiet) -and -not (Test-Endpoint 'http://127.0.0.1:7860/sdapi/v1/options')) {
+    Stop-PortOwner 7860
+}
 if (-not (Test-NetConnection 127.0.0.1 -Port 7860 -InformationLevel Quiet)) {
     Start-LocalMuseService 'Forge API' "call `"$PSScriptRoot\start_forge_api.bat`"" 'forge.log'
+}
+if ((Test-NetConnection 127.0.0.1 -Port 7861 -InformationLevel Quiet) -and -not (Test-Endpoint 'http://127.0.0.1:7861/api/health')) {
+    Stop-PortOwner 7861
 }
 if (-not (Test-NetConnection 127.0.0.1 -Port 7861 -InformationLevel Quiet)) {
     Start-LocalMuseService 'LocalMuse UI' "call `"$PSScriptRoot\start_localmuse_ui.bat`"" 'ui.log'
