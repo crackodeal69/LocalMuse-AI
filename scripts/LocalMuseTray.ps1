@@ -13,8 +13,16 @@ function Start-LocalMuseService([string]$title, [string]$command, [string]$logNa
     $script:servicePids += $process.Id
 }
 
-Start-LocalMuseService 'Forge API' "call `"$PSScriptRoot\start_forge_api.bat`"" 'forge.log'
-Start-LocalMuseService 'LocalMuse UI' "call `"$PSScriptRoot\start_localmuse_ui.bat`"" 'ui.log'
+function Stop-LocalMuseTree([int]$processId) {
+    & taskkill.exe /PID $processId /T /F 2>$null | Out-Null
+}
+
+if (-not (Test-NetConnection 127.0.0.1 -Port 7860 -InformationLevel Quiet)) {
+    Start-LocalMuseService 'Forge API' "call `"$PSScriptRoot\start_forge_api.bat`"" 'forge.log'
+}
+if (-not (Test-NetConnection 127.0.0.1 -Port 7861 -InformationLevel Quiet)) {
+    Start-LocalMuseService 'LocalMuse UI' "call `"$PSScriptRoot\start_localmuse_ui.bat`"" 'ui.log'
+}
 
 $notify = New-Object System.Windows.Forms.NotifyIcon
 $notify.Icon = [System.Drawing.SystemIcons]::Application
@@ -27,7 +35,7 @@ $logs = $menu.Items.Add('Open logs')
 $logs.Add_Click({ Start-Process explorer.exe $logRoot })
 $menu.Items.Add('-') | Out-Null
 $stop = $menu.Items.Add('Stop LocalMuse services')
-$stop.Add_Click({ $servicePids | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; $notify.Visible = $false; $notify.Dispose(); [System.Windows.Forms.Application]::Exit() })
+$stop.Add_Click({ $servicePids | ForEach-Object { Stop-LocalMuseTree $_ }; $notify.Visible = $false; $notify.Dispose(); [System.Windows.Forms.Application]::Exit() })
 $notify.ContextMenuStrip = $menu
 $notify.Add_DoubleClick({ Start-Process 'http://127.0.0.1:7861' })
 
