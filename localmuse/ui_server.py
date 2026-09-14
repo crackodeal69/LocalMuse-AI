@@ -249,6 +249,14 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
                 os.startfile(folder)
                 self.send_json({"opened": True})
                 return
+            if self.path == "/api/open-file":
+                file_path = (PROJECT_ROOT / str(payload["path"])).resolve()
+                output_root = OUTPUT_ROOT.resolve()
+                if output_root not in file_path.parents or not file_path.is_file():
+                    raise ValueError("Only LocalMuse output files can be opened")
+                os.startfile(file_path)
+                self.send_json({"opened": True})
+                return
             if self.path == "/api/dataset/captions":
                 job_id = start_caption_job(str(payload["directory"]), str(payload["trigger_token"]))
                 self.send_json({"job_id": job_id, "status": "started"})
