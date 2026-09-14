@@ -6,6 +6,8 @@ import mimetypes
 import os
 import shutil
 import subprocess
+import threading
+import time
 import uuid
 import urllib.error
 import urllib.request
@@ -64,6 +66,18 @@ def request_json(path: str, payload: dict[str, Any] | None = None) -> dict[str, 
 
 def interrupt_generation() -> None:
     request_json("/sdapi/v1/interrupt", {})
+
+
+def shutdown_localmuse() -> None:
+    """Ask the tray owner to stop all services, or stop this UI process."""
+    tray_pid = os.environ.get("LOCALMUSE_TRAY_PID")
+    if tray_pid and tray_pid.isdigit():
+        subprocess.Popen(
+            ["powershell.exe", "-NoProfile", "-Command", f"Start-Sleep -Milliseconds 300; Stop-Process -Id {tray_pid} -Force"],
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+    else:
+        threading.Thread(target=lambda: (time.sleep(0.3), os._exit(0)), daemon=True).start()
 
 
 def build_prompt(trigger: str, prompt: str, preset: dict[str, Any]) -> str:
@@ -222,6 +236,10 @@ class LocalMuseHandler(BaseHTTPRequestHandler):
             if self.path == "/api/generate/stop":
                 interrupt_generation()
                 self.send_json({"stopped": True})
+                return
+            if self.path == "/api/shutdown":
+                self.send_json({"shutdown": True})
+                shutdown_localmuse()
                 return
             if self.path == "/api/open-folder":
                 folder = (PROJECT_ROOT / str(payload["folder"])).resolve()

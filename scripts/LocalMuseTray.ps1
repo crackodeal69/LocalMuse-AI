@@ -5,6 +5,7 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $logRoot = Join-Path $projectRoot 'outputs\localmuse_logs'
 New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 $servicePids = @()
+$env:LOCALMUSE_TRAY_PID = [string]$PID
 
 function Start-LocalMuseService([string]$title, [string]$command, [string]$logName) {
     $logPath = Join-Path $logRoot $logName
