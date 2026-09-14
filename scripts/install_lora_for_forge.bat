@@ -3,7 +3,8 @@ setlocal
 
 set "PROJECT_ROOT=%~dp0.."
 set "SOURCE_DIR=%PROJECT_ROOT%\models\lora"
-set "FORGE_DIR=E:\ai_work\webui\models\Lora"
+if not defined LOCALMUSE_FORGE_LORA_DIR set "LOCALMUSE_FORGE_LORA_DIR=E:\ai_work\webui\models\Lora"
+set "FORGE_DIR=%LOCALMUSE_FORGE_LORA_DIR%"
 set "SOURCE=%~1"
 
 if "%SOURCE%"=="" set "SOURCE=nag_person_dataset_v01-000005.safetensors"

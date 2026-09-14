@@ -5,9 +5,9 @@ Keep it synchronized with `Progress_RU.md` after every meaningful change.
 
 ## Current Status
 
-**Stage:** Early development / research
+**Stage:** Working UI prototype and local training pipeline
 
-**Last updated:** 2026-09-12
+**Last updated:** 2026-09-14
 
 ## Completed
 
@@ -27,26 +27,33 @@ Keep it synchronized with `Progress_RU.md` after every meaningful change.
 - Added tests for portrait images, landscape images, and unsupported extensions.
 - Added tests for same-name TXT files, complex filenames, and directory processing.
 - Added the project plan in `docs/LocalMuse/LocalMuse-AI_Project_Plan.md`.
+- Added a working LocalMuse UI over Forge API with generation, Dataset & training,
+  presets, English/Russian language, and light/dark themes.
+- Added eye-color selection, five built-in prompt presets, and localized `(i)`
+  setting explanations.
+- Kept the RealVisXL base checkpoint, Florence-2 cache, and baseline LoRA
+  checkpoints in the project-owned `models/` tree; model files remain ignored by Git.
+- Replaced hard-coded Forge and kohya paths in the UI and Forge helper scripts
+  with environment-configurable paths and documented fallbacks.
 
 ## Not Completed Yet
 
-- Dataset folder structure and dataset versioning.
 - Image quality checks, duplicate detection, and dataset analysis.
-- Real image captioning or vision-model integration.
+- Image quality checks, duplicate detection, and dataset analysis.
 - Caption review and editing workflow.
-- LoRA training orchestration.
+- Caption review and editing workflow.
+- Detailed job/progress reporting for captioning and training.
 - Checkpoint comparison and identity evaluation.
 - Local image generation integration.
 - Batch generation and result selection.
 - Hardware-aware configuration.
-- User interface or application orchestrator.
+- Checkpoint comparison and identity evaluation.
 - Reproducible experiment configuration and result records.
 
 ## Current Focus
 
-Define the smallest useful local dataset-preparation workflow before adding model
-training or generation integrations. Keep image inspection, caption generation,
-training, evaluation, and generation as separate components.
+Make the existing UI workflow reliable and observable: add detailed job/progress
+reporting, curate generation results, and prepare `dataset_v02` before retraining.
 
 ## Verification
 
@@ -56,7 +63,7 @@ training, evaluation, and generation as separate components.
   pytest
   ```
 
-- Latest run: `python -m pytest -q` passed with 9 tests.
+- Latest run: `python -m pytest -q` passed with 13 tests.
 - Florence-2 was verified on the RTX 3080 and generated 30 captions.
 - Cleaned captions contain the trigger exactly once, with no empty files or known
   speculative-output patterns.
@@ -65,11 +72,18 @@ training, evaluation, and generation as separate components.
 - The current test coverage covers prompt generation, caption cleanup, and dataset QA.
 - Batch files for repeating training and installing a selected checkpoint into Forge
   are documented in `Generation_and_Training.md`.
+- Browser verification confirmed Forge connection, five presets, Dataset & training,
+  language switching, themes, and tooltips.
+- Path verification confirmed the project-owned base model and LoRA checkpoints
+  are present; external Forge/kohya locations can now be overridden with
+  `LOCALMUSE_FORGE_ROOT`, `LOCALMUSE_FORGE_LORA_DIR`, and `LOCALMUSE_KOHYA_ROOT`.
 
 ## Stopping Point
 
-The first SDXL LoRA baseline completed for the pilot dataset. The next feature is
-fixed-prompt checkpoint comparison and identity evaluation.
+The first SDXL LoRA baseline works technically, but `nag_person_dataset_v01` keeps
+eyes and identity less reliably than the older `sid_person` model. The UI now
+covers generation and profile-based training. Next: job/progress UI, result curation,
+and preparation of `dataset_v02`.
 
 ## Session Notes
 

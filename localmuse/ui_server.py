@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import mimetypes
+import os
 import shutil
 import subprocess
 import uuid
@@ -22,13 +23,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PRESET_PATH = PROJECT_ROOT / "configs" / "generation_presets.json"
 USER_PRESET_PATH = PROJECT_ROOT / "configs" / "user_presets.json"
 OUTPUT_ROOT = PROJECT_ROOT / "outputs" / "localmuse_ui"
-FORGE_LORA_DIR = Path(r"E:\ai_work\webui\models\Lora")
-FORGE_API_URL = "http://127.0.0.1:7860"
+FORGE_ROOT = Path(os.environ.get("LOCALMUSE_FORGE_ROOT", r"E:\ai_work\webui"))
+FORGE_LORA_DIR = Path(os.environ.get("LOCALMUSE_FORGE_LORA_DIR", str(FORGE_ROOT / "models" / "Lora")))
+FORGE_API_URL = os.environ.get("LOCALMUSE_FORGE_API_URL", "http://127.0.0.1:7860")
 WEB_ROOT = PROJECT_ROOT / "localmuse" / "web"
 DATASET_ROOT = PROJECT_ROOT / "data" / "lora_dataset_ui"
-CAPTION_PYTHON = Path(r"E:\ai_work\kohya_ss\.venv\Scripts\python.exe")
-ACCELERATE = Path(r"E:\ai_work\kohya_ss\.venv\Scripts\accelerate.exe")
-KOHYA_ROOT = Path(r"E:\ai_work\kohya_ss\sd-scripts")
+KOHYA_ROOT = Path(os.environ.get("LOCALMUSE_KOHYA_ROOT", r"E:\ai_work\kohya_ss\sd-scripts"))
+KOHYA_VENV = Path(os.environ.get("LOCALMUSE_KOHYA_VENV", str(KOHYA_ROOT.parent / ".venv")))
+CAPTION_PYTHON = Path(os.environ.get("LOCALMUSE_CAPTION_PYTHON", str(KOHYA_VENV / "Scripts" / "python.exe")))
+ACCELERATE = Path(os.environ.get("LOCALMUSE_ACCELERATE", str(KOHYA_VENV / "Scripts" / "accelerate.exe")))
 JOBS: dict[str, subprocess.Popen[str]] = {}
 
 

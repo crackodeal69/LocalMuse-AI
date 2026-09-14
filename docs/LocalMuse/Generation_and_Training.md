@@ -115,7 +115,7 @@ The comparison script also supports `--weights 0.4 0.6 0.8 1.0 1.2` and the
 `hr_additional_modules` value; use the Forge GUI for hires until that build is
 updated. Base 512x912 API generation works.
 
-## Preset and Advanced Settings Design
+## Preset and Advanced Settings
 
 Built-in generation presets are stored in:
 
@@ -123,7 +123,7 @@ Built-in generation presets are stored in:
 configs\generation_presets.json
 ```
 
-The planned user-facing interface has two levels:
+The implemented user-facing interface has two levels:
 
 - Simple mode: preset, prompt, negative prompt, LoRA weight, and Generate.
 - Advanced mode: base model, sampler, steps, CFG, resolution, hires settings,
@@ -131,7 +131,9 @@ The planned user-facing interface has two levels:
 
 The initial presets are based on the known working profile rather than arbitrary
 online recommendations: 512x912, DPM++ 2M Karras, 30 steps, CFG 4, and LoRA
-weight 0.9. The CyberRealistic preset is marked experimental until it is tested
+weight 0.9. The built-in presets include clean portrait, white background, white
+background with eyes, CyberRealistic experimental, and portrait with brown eyes.
+The CyberRealistic preset is marked experimental until it is tested
 with the same LoRA and fixed seeds.
 
 When a user saves a customized preset, it is written to the local ignored file:

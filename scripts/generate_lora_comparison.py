@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import base64
 import json
 import shutil
@@ -45,7 +46,7 @@ def wait_for_api(api_url: str, timeout_seconds: int = 300) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate fixed-seed images for LoRA checkpoint comparison.")
     parser.add_argument("--checkpoint-dir", type=Path, default=Path("models/lora"))
-    parser.add_argument("--forge-lora-dir", type=Path, default=Path(r"E:\ai_work\webui\models\Lora"))
+    parser.add_argument("--forge-lora-dir", type=Path, default=Path(os.environ.get("LOCALMUSE_FORGE_LORA_DIR", r"E:\ai_work\webui\models\Lora")))
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/generation_comparison"))
     parser.add_argument("--api-url", default="http://127.0.0.1:7860")
     parser.add_argument("--base-model", default="realvisxlV50_v50Bakedvae.safetensors")

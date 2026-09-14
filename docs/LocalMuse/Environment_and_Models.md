@@ -2,6 +2,9 @@
 
 This file is the handoff map for future agents and setup work.
 
+For the complete current status and next steps, read
+`docs/LocalMuse/Current_Handoff.md` first.
+
 ## Project Root
 
 ```text
@@ -46,6 +49,20 @@ Approximate size: 1.45 GB
 The model is loaded with `trust_remote_code=True`, eager attention, FP16 on CUDA,
 and `use_cache=False` because this combination is compatible with the current
 Transformers version.
+
+### LocalMuse UI
+
+```text
+Backend: localmuse/ui_server.py
+Frontend: localmuse/web/index.html
+URL: http://127.0.0.1:7861
+Forge API: http://127.0.0.1:7860
+Launcher: scripts/start_localmuse.bat
+```
+
+The UI currently supports generation, presets, eye-color prompt control,
+English/Russian language, light/dark themes, dataset scanning, caption jobs,
+versioned dataset preparation, and profile-based LoRA training.
 
 ### Existing LoRA checkpoints
 
@@ -119,3 +136,4 @@ keeping visible details such as clothing, pose, and background.
   runtime requirements here.
 - Keep caption generation, LoRA training, evaluation, and image generation as
   separate components.
+- Keep `data/`, `models/`, and `outputs/` local and ignored by Git.
